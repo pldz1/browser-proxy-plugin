@@ -1,0 +1,100 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+#app {
+  height: 472px;
+  width: 396px;
+}
+
+.fit {
+  height: 100%;
+  width: 100%;
+}
+
+.w3-h2 {
+  width: 380px;
+  height: 20px;
+}
+
+.w3-h3 {
+  width: 380px;
+  height: 30px;
+}
+
+.w3-h5 {
+  width: 380px;
+  height: 50px;
+}
+
+.w1 {
+  width: 100px;
+  max-width: 100px;
+}
+
+.w05 {
+  width: 50px;
+  max-width: 50px;
+}
+
+.m-tb-4 {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.f-14 {
+  font-size: 14px;
+}
+
+.flex-row {
+  clear: both;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.flex-column {
+  clear: both;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 4px 0;
+  width: 380px;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px dashed #9b9898;
+}
+
+.divider::before {
+  margin-right: 0px;
+}
+
+.divider::after {
+  margin-left: 0px;
+}
+
+.divider span {
+  display: inline-block;
+  text-align: center;
+  background-color: transparent;
+  padding: 0 4px;
+}
+
+.divider span:empty {
+  display: none;
+}

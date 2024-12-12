@@ -1,0 +1,13 @@
+.hidden {
+  display: none;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.not-allowed {
+  pointer-events: none;
+  background-color: #a7aaaca6;
+}
