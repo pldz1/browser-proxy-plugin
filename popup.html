@@ -1,101 +1,123 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Browser_Proxy_Plugin</title>
+    <link rel="stylesheet" href="/style/app.css" />
+    <link rel="stylesheet" href="/style/elements.css" />
+    <link rel="stylesheet" href="/style/global.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <title>Browser_Proxy_Plugin</title>
-  <link rel="stylesheet" href="/style/app.css" />
-  <link rel="stylesheet" href="/style/elements.css" />
-  <link rel="stylesheet" href="/style/global.css" />
-</head>
-
-<body>
-  <div id="app" class="flex-column f-14">
-    <!-- 代理模式 -->
-    <div class="proxy-container flex-column">
-      <!-- 无代理 -->
-      <div class="flex-row fit m-tb-4">
-        <input type="checkbox" id="no-proxy-checkbox" name="no-proxy-checkbox" class="c-checkbox" />
-        <label for="no-proxy-checkbox" class="c-checkbox-label">无代理 </label>
+  <body>
+    <div id="app" class="flex-column f-14">
+      <!-- 代理模式 -->
+      <div class="proxy-container flex-column">
+        <!-- 无代理 -->
+        <div class="flex-row fit m-tb-4">
+          <input
+            type="checkbox"
+            id="no-proxy-checkbox"
+            name="no-proxy-checkbox"
+            class="c-checkbox"
+          />
+          <label for="no-proxy-checkbox" class="c-checkbox-label"
+            >无代理
+          </label>
+        </div>
+        <!-- 手动代理 -->
+        <div class="flex-row fit m-tb-4">
+          <input
+            type="checkbox"
+            id="manual-proxy-checkbox"
+            name="manual-proxy-checkbox"
+            class="c-checkbox"
+          />
+          <label for="manual-proxy-checkbox" class="c-checkbox-label"
+            >手动配置代理
+          </label>
+        </div>
       </div>
-      <!-- 手动代理 -->
-      <div class="flex-row fit m-tb-4">
-        <input type="checkbox" id="manual-proxy-checkbox" name="manual-proxy-checkbox" class="c-checkbox" />
-        <label for="manual-proxy-checkbox" class="c-checkbox-label">手动配置代理 </label>
-      </div>
-    </div>
 
-    <!-- 代理配置界面 -->
-    <div id="proxy-configuration" class="proxy-configuration disabled">
-      <div id="proxy-panel" class="proxy-panel flex-column not-allowed">
-        <div class="divider"><span>HTTP(S) 设置</span></div>
-        <!-- HTTP 设置 -->
-        <div class="flex-row w3-h2 m-tb-4">
-          <span class="http-s-span w1">HTTP 代理: </span>
-          <input type="text" id="http-proxy" class="http-s-input" placeholder="" />
-          <span class="http-s-span w05">端口: </span>
-          <input type="number" id="http-port" class="http-s-port" placeholder="" />
-        </div>
+      <!-- 代理配置界面 -->
+      <div id="proxy-configuration" class="proxy-configuration disabled">
+        <div id="proxy-panel" class="proxy-panel flex-column not-allowed">
+          <div class="divider"><span>HTTP(S) 设置</span></div>
+          <!-- HTTP 设置 -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <span class="http-s-span w1">HTTP 代理: </span>
+            <input
+              type="text"
+              id="http-proxy"
+              class="http-s-input"
+              placeholder=""
+            />
+            <span class="http-s-span w05">端口: </span>
+            <input
+              type="number"
+              id="http-port"
+              class="http-s-port"
+              placeholder=""
+            />
+          </div>
 
-        <!-- HTTP 和 HTTPS 共用属性 checkbook -->
-        <div class="flex-row w3-h2 m-tb-4">
-          <input type="checkbox" id="use-for-https" class="c-checkbox" />
-          <label for="use-for-https" lable="c-checkbox-label">也将此代理用于 HTTPS</label>
-        </div>
+          <!-- HTTP 和 HTTPS 共用属性 checkbook -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <input type="checkbox" id="use-for-https" class="c-checkbox" />
+            <label for="use-for-https" lable="c-checkbox-label"
+              >也将此代理用于 HTTPS</label
+            >
+          </div>
 
-        <!-- HTTPS 设置 -->
-        <div class="flex-row w3-h2 m-tb-4 ">
-          <span class="http-s-span w1">HTTPS 代理: </span>
-          <input type="text" id="https-proxy" class="http-s-input" placeholder="" />
-          <span class="http-s-span w05">端口: </span>
-          <input type="number" id="https-port" class="http-s-port" placeholder="" />
-        </div>
+          <!-- HTTPS 设置 -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <span class="http-s-span w1">HTTPS 代理: </span>
+            <input
+              type="text"
+              id="https-proxy"
+              class="http-s-input"
+              placeholder=""
+            />
+            <span class="http-s-span w05">端口: </span>
+            <input
+              type="number"
+              id="https-port"
+              class="http-s-port"
+              placeholder=""
+            />
+          </div>
 
-        <div class="divider"><span>SOCKS 设置</span></div>
-        <!-- SOCKS 设置 -->
-        <div class="flex-row w3-h2 m-tb-4">
-          <span class="sock-s-span w1">SOCKS 主机: </span>
-          <input type="text" id="socks-host" class="sock-s-input" placeholder="" />
-          <span class="sock-s-span w05">端口: </span>
-          <input type="number" id="socks-port" class="sock-s-port" placeholder="" />
-        </div>
+          <div class="divider"><span>无代理列表</span></div>
+          <!-- 不使用代理 标签 -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <label class="label-block" for="c-checkbox-label"
+              >不使用代理列表</label
+            >
+          </div>
 
-        <!-- SOCKS 协议 -->
-        <div class="flex-row w3-h2 m-tb-4">
-          <div class="sock-s-protocol flex-row">
-            <input type="radio" name="socks-version" id="socks-v4" class="c-checkbox" />
-            <label for="socks-v4" class="c-checkbox-label">SOCKS v4</label>
-            <input type="radio" name="socks-version" id="socks-v5" class="c-checkbox" checked />
-            <label for="socks-v5" class="c-checkbox-label">SOCKS v5</label>
+          <!-- 不使用代理 内容 -->
+          <div class="flex-row w3-h5 m-tb-4">
+            <textarea
+              id="bypass-list"
+              class="bypass-list"
+              placeholder=".net.nz; 192.168.1.0/24; localhost; 127.0.0.1/8; ::1;"
+            ></textarea>
+          </div>
+
+          <!-- 不使用代理 提示 -->
+          <div class="flex-row w3-h5 m-tb-4">
+            注意: .net.nz; 192.168.1.0/24; localhost; 127.0.0.1/8; ::1
+            的连接永不过经过代理。
           </div>
         </div>
+      </div>
 
-        <div class="divider"><span>无代理列表</span></div>
-        <!-- 不使用代理 标签 -->
-        <div class="flex-row w3-h2 m-tb-4">
-          <label class="label-block" for="c-checkbox-label">不使用代理列表</label>
-        </div>
-
-        <!-- 不使用代理 内容 -->
-        <div class="flex-row w3-h5 m-tb-4">
-          <textarea id="bypass-list" class="bypass-list" placeholder=".net.nz; 192.168.1.0/24; localhost; 127.0.0.1/8; ::1;"></textarea>
-        </div>
-
-        <!-- 不使用代理 提示 -->
-        <div class="flex-row w3-h5 m-tb-4">
-          注意: .net.nz; 192.168.1.0/24; localhost; 127.0.0.1/8; ::1 的连接永不过经过代理。
-        </div>
+      <!-- 确定按钮 -->
+      <div class="flex-row button-group">
+        <button id="apply-button" class="c-button">确定</button>
+        <button id="cancel-button" class="c-button">取消</button>
       </div>
     </div>
 
-    <!-- 确定按钮 -->
-    <div class="flex-row button-group">
-      <button id="apply-button" class="c-button">确定</button>
-      <button id="cancel-button" class="c-button">取消</button>
-    </div>
-  </div>
-
-  <script src="./modules/popup.js"></script>
-</body>
-
+    <script src="./modules/popup.js"></script>
+  </body>
 </html>

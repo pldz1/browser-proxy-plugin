@@ -33,8 +33,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const httpPortInput = document.getElementById("http-port");
   const httpsProxyInput = document.getElementById("https-proxy");
   const httpsPortInput = document.getElementById("https-port");
-  const socksHostInput = document.getElementById("socks-host");
-  const socksPortInput = document.getElementById("socks-port");
   const bypassListInput = document.getElementById("bypass-list");
   const useForHttpsCheckbox = document.getElementById("use-for-https");
   const applyButton = document.getElementById("apply-button");
@@ -120,8 +118,6 @@ document.addEventListener("DOMContentLoaded", function () {
         httpsPort: useForHttpsCheckbox.checked
           ? httpPortInput.value
           : httpsPortInput.value,
-        socksHost: socksHostInput.value,
-        socksPort: socksPortInput.value,
         // 保存合并后的 bypassList
         bypassList: finalBypassList,
         useForHttps: useForHttpsCheckbox.checked,
@@ -159,10 +155,6 @@ document.addEventListener("DOMContentLoaded", function () {
       httpsProxyInput.value = initialSettings.httpsProxy;
     if (initialSettings.httpsPort)
       httpsPortInput.value = initialSettings.httpsPort;
-    if (initialSettings.socksHost)
-      socksHostInput.value = initialSettings.socksHost;
-    if (initialSettings.socksPort)
-      socksPortInput.value = initialSettings.socksPort;
 
     const userBypassList = initialSettings.bypassList
       ? initialSettings.bypassList
@@ -203,8 +195,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (result.httpPort) httpPortInput.value = result.httpPort;
       if (result.httpsProxy) httpsProxyInput.value = result.httpsProxy;
       if (result.httpsPort) httpsPortInput.value = result.httpsPort;
-      if (result.socksHost) socksHostInput.value = result.socksHost;
-      if (result.socksPort) socksPortInput.value = result.socksPort;
 
       // 合并不显示默认去掉的bypassList
       const userBypassList = result.bypassList ? result.bypassList : [];
