@@ -23,9 +23,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /** ================== Step 1 ================== */
   // 得到插件的全部 HTML Element
-  const noProxyToggle = document.getElementById("no-proxy-checkbox");
-  const manualProxyToggle = document.getElementById("manual-proxy-checkbox");
+  const noProxyToggle = document.getElementById("no-proxy-radio");
 
+  // 手动直连的关键 HTML Element
+  const manualProxyToggle = document.getElementById("manual-proxy-radio");
+  const manualProxyOptionEl = document.getElementById("manual-proxy-direct");
+
+  // 手动白名单的关键 HTML Element
+  const manualProxyWhiteListToggle = document.getElementById(
+    "manual-proxy-white-radio"
+  );
+  const manualProxyWhiteOptionEl =
+    document.getElementById("manual-proxy-white");
+
+  // 其他的配置参数
   const proxyConfiguration = document.getElementById("proxy-configuration");
   const proxyPanel = document.getElementById("proxy-panel");
 
@@ -34,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const httpsProxyInput = document.getElementById("https-proxy");
   const httpsPortInput = document.getElementById("https-port");
   const bypassListInput = document.getElementById("bypass-list");
+  const whiteListInput = document.getElementById("white-proxy-list");
   const useForHttpsCheckbox = document.getElementById("use-for-https");
   const applyButton = document.getElementById("apply-button");
   const cancelButton = document.getElementById("cancel-button");
@@ -42,21 +54,28 @@ document.addEventListener("DOMContentLoaded", function () {
   // 给插件的HTML Element注入监听事件 观察变化
   // 2.1 不使用代理和使用手动代理的互斥行为
   noProxyToggle.addEventListener("change", () => {
-    if (noProxyToggle.checked) manualProxyToggle.checked = false;
-    else manualProxyToggle.checked = true;
     // 主动触发一次使用手动代理的行为促使它去修改样式
-    manualProxyToggle.dispatchEvent(new Event("change"));
+    proxyConfiguration.classList.add("disabled");
+    proxyPanel.classList.add("not-allowed");
+    manualProxyOptionEl.style.cssText = "display: none;";
+    manualProxyWhiteOptionEl.style.cssText = "display: none;";
   });
 
   manualProxyToggle.addEventListener("change", () => {
     if (manualProxyToggle.checked) {
       proxyConfiguration.classList.remove("disabled");
       proxyPanel.classList.remove("not-allowed");
-      noProxyToggle.checked = false;
-    } else {
-      proxyConfiguration.classList.add("disabled");
-      proxyPanel.classList.add("not-allowed");
-      noProxyToggle.checked = true;
+      manualProxyOptionEl.style.cssText = "";
+      manualProxyWhiteOptionEl.style.cssText = "display: none;";
+    }
+  });
+
+  manualProxyWhiteListToggle.addEventListener("change", () => {
+    if (manualProxyWhiteListToggle.checked) {
+      proxyConfiguration.classList.remove("disabled");
+      proxyPanel.classList.remove("not-allowed");
+      manualProxyWhiteOptionEl.style.cssText = "";
+      manualProxyOptionEl.style.cssText = "display: none;";
     }
   });
 
@@ -84,49 +103,82 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 2.3 从 HTML Element 上拿出状态写入存储 并且需要立即生效设置
   applyButton.addEventListener("click", () => {
-    // 获取用户输入并将其分割为数组，同时移除多余的空格
+    // 获取用户输入
     const bypassList = bypassListInput.value
-      .split(";")
+      .split(",")
       .map((url) => url.trim())
       .filter(Boolean);
 
-    // 将默认的bypassList加入用户输入的bypassList
-    const finalBypassList = [...new Set([...defaultBypassList, ...bypassList])];
+    const whiteList = whiteListInput.value
+      .split(",")
+      .map((url) => url.trim())
+      .filter(Boolean);
 
-    const proxyConfig = {
-      mode: "fixed_servers",
-      rules: {
-        singleProxy: {
-          scheme: "http",
-          host: httpProxyInput.value || "example.com",
-          port: parseInt(httpPortInput.value) || 8080,
+    const proxyHost = httpProxyInput.value || "example.com";
+    const proxyPort = parseInt(httpPortInput.value) || 80;
+    const useForHttps = useForHttpsCheckbox.checked;
+
+    let proxyConfig = {};
+    let proxyEnabledMode = "no-proxy";
+
+    if (manualProxyToggle.checked) {
+      proxyEnabledMode = "manual-direct";
+      const finalBypassList = [
+        ...new Set([...defaultBypassList, ...bypassList]),
+      ];
+
+      proxyConfig = {
+        mode: "fixed_servers",
+        rules: {
+          singleProxy: {
+            scheme: "http",
+            host: proxyHost,
+            port: proxyPort,
+          },
+          bypassList: finalBypassList,
         },
-        // 使用合并后的 bypassList
-        bypassList: finalBypassList,
-      },
-    };
+      };
+    } else if (manualProxyWhiteListToggle.checked) {
+      proxyEnabledMode = "manual-whitelist";
 
-    // 保存设置到 Chrome 存储中
+      // 构建 PAC 脚本，白名单走代理，其它全直连
+      const pacScript = `
+  function FindProxyForURL(url, host) {
+    var whitelist = ${JSON.stringify(whiteList)};
+    for (var i = 0; i < whitelist.length; i++) {
+      if (shExpMatch(host, whitelist[i])) {
+        return "PROXY ${proxyHost}:${proxyPort}";
+      }
+    }
+    return "DIRECT";
+  }
+  `;
+
+      proxyConfig = {
+        mode: "pac_script",
+        pacScript: {
+          data: pacScript,
+        },
+      };
+    }
+
+    // 保存设置
     chrome.storage.sync.set(
       {
-        proxyEnabled: manualProxyToggle.checked,
-        httpProxy: httpProxyInput.value,
-        httpPort: httpPortInput.value,
-        httpsProxy: useForHttpsCheckbox.checked
-          ? httpProxyInput.value
-          : httpsProxyInput.value,
-        httpsPort: useForHttpsCheckbox.checked
-          ? httpPortInput.value
-          : httpsPortInput.value,
-        // 保存合并后的 bypassList
-        bypassList: finalBypassList,
-        useForHttps: useForHttpsCheckbox.checked,
-        // 保存代理配置
+        proxyEnabled: proxyEnabledMode,
+        httpProxy: proxyHost,
+        httpPort: proxyPort.toString(),
+        httpsProxy: useForHttps ? proxyHost : httpsProxyInput.value,
+        httpsPort: useForHttps ? proxyPort.toString() : httpsPortInput.value,
+        bypassList: bypassList,
+        whiteList: whiteList,
+        useForHttps: useForHttps,
         proxySettings: proxyConfig,
       },
-      // 立即应用设置
       function () {
-        if (manualProxyToggle.checked) {
+        if (proxyEnabledMode === "no-proxy") {
+          chrome.proxy.settings.clear({ scope: "regular" }, function () {});
+        } else {
           chrome.proxy.settings.set(
             {
               value: proxyConfig,
@@ -134,19 +186,23 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             function () {}
           );
-        } else {
-          chrome.proxy.settings.clear({ scope: "regular" }, function () {});
         }
+        window.close();
       }
     );
-    window.close();
   });
 
   // 2.4 取消设置需要回退回存储中记录的状态
   cancelButton.addEventListener("click", () => {
     // 恢复到初始设置
-    if (initialSettings.proxyEnabled)
-      manualProxyToggle.checked = initialSettings.proxyEnabled;
+    if (initialSettings.proxyEnabled) {
+      if (initialSettings.proxyEnabled == "manual-direct")
+        manualProxyToggle.checked = true;
+      else if (initialSettings.proxyEnabled == "manual-whitelist")
+        manualProxyWhiteListToggle.checked = true;
+      else noProxyToggle.checked = true;
+    }
+
     if (initialSettings.httpProxy)
       httpProxyInput.value = initialSettings.httpProxy;
     if (initialSettings.httpPort)
@@ -183,13 +239,22 @@ document.addEventListener("DOMContentLoaded", function () {
       "socksHost",
       "socksPort",
       "bypassList",
+      "whiteList",
       "useForHttps",
     ],
     function (result) {
       initialSettings = result;
-      // 互斥的两个开关选项
-      if (result.proxyEnabled) manualProxyToggle.checked = true;
-      manualProxyToggle.dispatchEvent(new Event("change"));
+      // 互斥的radio group选项
+      if (result.proxyEnabled == "manual-direct") {
+        manualProxyToggle.checked = true;
+        manualProxyToggle.dispatchEvent(new Event("change"));
+      } else if (result.proxyEnabled == "manual-whitelist") {
+        manualProxyWhiteListToggle.checked = true;
+        manualProxyWhiteListToggle.dispatchEvent(new Event("change"));
+      } else {
+        noProxyToggle.checked = true;
+        noProxyToggle.dispatchEvent(new Event("change"));
+      }
 
       if (result.httpProxy) httpProxyInput.value = result.httpProxy;
       if (result.httpPort) httpPortInput.value = result.httpPort;
@@ -202,7 +267,8 @@ document.addEventListener("DOMContentLoaded", function () {
         (item) => !defaultBypassList.includes(item)
       );
 
-      bypassListInput.value = combinedBypassList.join("; ");
+      bypassListInput.value = combinedBypassList.join(", ");
+      if (result.whiteList) whiteListInput.value = result.whiteList.join(", ");
 
       if (result.useForHttps) useForHttpsCheckbox.checked = result.useForHttps;
       useForHttpsCheckbox.dispatchEvent(new Event("change"));

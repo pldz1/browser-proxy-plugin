@@ -10,12 +10,12 @@
   background-color: #a7aaac13;
 }
 
-.c-checkbox {
+.c-radio {
   width: 18px;
   height: 18px;
 }
 
-.c-checkbox-label {
+.c-radio-label {
   display: inline-block;
   height: 18px;
 }
@@ -42,7 +42,9 @@
   margin-left: 100px;
 }
 
-.bypass-list {
+
+.bypass-list,
+.white-proxy-list {
   min-height: 50px;
   width: 380px;
   resize: none;
