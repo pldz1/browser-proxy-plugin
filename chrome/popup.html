@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Browser_Proxy_Plugin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --card: #ffffffcc;
+        --card-border: #e7e9ee;
+        --text: #1f2328;
+        --muted: #6b7280;
+        --brand: #4f8cff;
+        --brand-600: #3f7af0;
+        --brand-700: #2f66d8;
+        --ring: #b9d1ff;
+        --shadow: 0 10px 24px rgba(17, 24, 39, 0.08),
+          0 2px 6px rgba(17, 24, 39, 0.04);
+        --chip-bg: #f3f4f6;
+        --chip-border: #e5e7eb;
+        --danger: #ef4444;
+        --ok: #22c55e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0c0f14;
+          --card: #0f141acc;
+          --card-border: #1e2630;
+          --text: #e7ecf3;
+          --muted: #9aa4b2;
+          --brand: #6da1ff;
+          --brand-600: #5b8ff7;
+          --brand-700: #4877e5;
+          --ring: #274382;
+          --shadow: 0 10px 24px rgba(0, 0, 0, 0.4),
+            0 2px 6px rgba(0, 0, 0, 0.35);
+          --chip-bg: #151b22;
+          --chip-border: #202834;
+        }
+      }
+
+      /* ===== 基础布局（保持原有宽高） ===== */
+      body {
+        padding: 10px;
+        box-sizing: border-box;
+        color: var(--text);
+      }
+      #app {
+        height: 430px;
+        width: 396px;
+      }
+
+      .fit {
+        height: 100%;
+        width: 100%;
+      }
+      .w3-h2 {
+        width: 380px;
+        height: 20px;
+      }
+      .w3-h3 {
+        width: 380px;
+        height: 30px;
+      }
+      .w3-h5 {
+        width: 380px;
+        height: 50px;
+      }
+      .w1 {
+        width: 100px;
+        max-width: 100px;
+      }
+      .w05 {
+        width: 50px;
+        max-width: 50px;
+      }
+      .m-tb-4 {
+        margin-top: 4px;
+        margin-bottom: 4px;
+      }
+      .f-14 {
+        font-size: 14px;
+      }
+      .flex-row {
+        clear: both;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      .flex-column {
+        clear: both;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+      }
+
+      /* ===== 现代化卡片与分隔线 ===== */
+      .proxy-container,
+      .proxy-configuration {
+        height: fit-content;
+        width: fit-content;
+      }
+      .proxy-panel {
+        border-radius: 16px;
+        padding: 12px;
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(6px);
+        transition: box-shadow 0.2s ease, transform 0.12s ease,
+          background 0.2s ease;
+      }
+      .divider {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin: 10px 0 8px;
+        width: 380px;
+      }
+      .divider::before,
+      .divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px dashed var(--card-border);
+      }
+      .divider::before {
+        margin-right: 8px;
+      }
+      .divider::after {
+        margin-left: 8px;
+      }
+      .divider span {
+        font-size: 12px;
+        color: var(--muted);
+        background: var(--chip-bg);
+        border: 1px solid var(--chip-border);
+        padding: 2px 8px;
+        border-radius: 999px;
+        line-height: 18px;
+      }
+
+      /* ===== 表单控件 ===== */
+      .sock-s-span,
+      .http-s-span {
+        margin-left: 6px;
+        margin-right: 6px;
+        color: var(--muted);
+      }
+      .sock-s-input,
+      .http-s-input,
+      .sock-s-port,
+      .http-s-port,
+      textarea,
+      input[type="text"],
+      input[type="number"] {
+        outline: none;
+        border: 1px solid var(--card-border);
+        background: linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.8),
+          rgba(255, 255, 255, 0.95)
+        );
+        color: var(--text);
+        border-radius: 10px;
+        padding: 6px 10px;
+        box-sizing: border-box;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+          background 0.15s ease, transform 0.05s ease;
+      }
+      .sock-s-port,
+      .http-s-port {
+        padding: 6px 4px !important;
+      }
+      @media (prefers-color-scheme: dark) {
+        .sock-s-input,
+        .http-s-input,
+        .sock-s-port,
+        .http-s-port,
+        textarea,
+        input[type="text"],
+        input[type="number"] {
+          background: linear-gradient(
+            0deg,
+            rgba(20, 26, 34, 0.9),
+            rgba(20, 26, 34, 0.95)
+          );
+        }
+      }
+      .sock-s-input,
+      .http-s-input {
+        width: 150px;
+        max-width: 150px;
+      }
+      .sock-s-port,
+      .http-s-port {
+        width: 60px;
+        max-width: 60px;
+      }
+      .sock-s-protocol {
+        margin-left: 100px;
+      }
+      .bypass-list {
+        min-height: 50px;
+        width: 380px;
+        resize: none;
+        font-size: 13px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      textarea:focus {
+        border-color: var(--brand);
+        box-shadow: 0 0 0 3px var(--ring);
+      }
+
+      /* ===== 自定义复选框 ===== */
+      .c-checkbox {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1.2px solid var(--card-border);
+        background: linear-gradient(180deg, #ffffff, #f6f7f9);
+        display: inline-grid;
+        place-content: center;
+        margin-right: 6px;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+          background 0.15s ease, transform 0.05s ease;
+      }
+      @media (prefers-color-scheme: dark) {
+        .c-checkbox {
+          background: linear-gradient(180deg, #0f141a, #0c1016);
+        }
+      }
+      .c-checkbox:hover {
+        box-shadow: 0 0 0 3px var(--ring);
+      }
+      .c-checkbox:active {
+        transform: scale(0.96);
+      }
+      .c-checkbox::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 4px;
+        transform: scale(0);
+        transition: transform 0.12s ease;
+        background: conic-gradient(
+          from 180deg at 50% 50%,
+          var(--brand),
+          var(--brand-700)
+        );
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+      }
+      .c-checkbox:checked {
+        border-color: var(--brand-600);
+      }
+      .c-checkbox:checked::before {
+        transform: scale(1);
+      }
+
+      .c-checkbox-label {
+        display: inline-block;
+        min-height: 18px;
+        color: var(--text);
+        user-select: none;
+      }
+
+      /* ===== 按钮 ===== */
+      .button-group {
+        height: 30px;
+        width: 396px;
+        margin: 10px 0 6px;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .c-button {
+        height: 28px;
+        width: 80px;
+        margin-left: 8px;
+        margin-right: 8px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        background: linear-gradient(180deg, var(--brand), var(--brand-600));
+        color: white;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        box-shadow: 0 6px 14px rgba(79, 140, 255, 0.25);
+        cursor: pointer;
+        transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease,
+          background 0.2s ease;
+      }
+      .c-button:hover {
+        filter: brightness(1.05);
+        box-shadow: 0 8px 18px rgba(79, 140, 255, 0.3);
+      }
+      .c-button:active {
+        transform: translateY(1px) scale(0.99);
+      }
+      #cancel-button {
+        background: linear-gradient(180deg, #e5e7eb, #dfe3e9);
+        color: #374151;
+        border: 1px solid var(--card-border);
+        box-shadow: 0 4px 10px rgba(31, 41, 55, 0.06);
+      }
+      /* ===== 标签优化 ===== */
+      label.label-block {
+        font-weight: 600;
+        color: var(--text);
+      }
+      @media (prefers-color-scheme: dark) {
+        #cancel-button {
+          background: linear-gradient(180deg, #161c24, #141a22);
+          color: #c9d2dc;
+        }
+        .c-checkbox-label {
+          color: rgba(20, 26, 34, 0.9);
+        }
+        .label-block,
+        .http-s-span {
+          color: #000000;
+        }
+      }
+      #cancel-button:hover {
+        filter: none;
+        box-shadow: 0 6px 14px rgba(17, 24, 39, 0.16);
+      }
+
+      /* ===== 状态类 ===== */
+      .hidden {
+        display: none;
+      }
+      .disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .not-allowed {
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          45deg,
+          #00000030 0 6px,
+          rgba(0, 0, 0, 0.03) 6px 12px
+        );
+        border-radius: 12px;
+      }
+
+      /* ===== 轻微动画点缀 ===== */
+      .http-s-input:focus,
+      .http-s-port:focus,
+      #https-proxy:focus,
+      #https-port:focus,
+      #bypass-list:focus {
+        animation: focus-pop 0.16s ease;
+      }
+      @keyframes focus-pop {
+        from {
+          transform: scale(0.995);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+
+      /* ===== 提示文本 ===== */
+      .note {
+        font-size: 12px;
+        color: var(--muted);
+        padding: 6px 8px;
+        margin-top: 2px;
+        border-radius: 10px;
+        background: var(--chip-bg);
+        border: 1px solid var(--chip-border);
+        width: calc(380px);
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="flex-column f-14">
+      <!-- 代理模式 -->
+      <div class="proxy-container flex-column">
+        <!-- 无代理 -->
+        <div class="flex-row fit m-tb-4">
+          <input
+            type="checkbox"
+            id="no-proxy-checkbox"
+            name="no-proxy-checkbox"
+            class="c-checkbox"
+          />
+          <label for="no-proxy-checkbox" class="c-checkbox-label">无代理</label>
+        </div>
+        <!-- 手动代理 -->
+        <div class="flex-row fit m-tb-4">
+          <input
+            type="checkbox"
+            id="manual-proxy-checkbox"
+            name="manual-proxy-checkbox"
+            class="c-checkbox"
+          />
+          <label for="manual-proxy-checkbox" class="c-checkbox-label"
+            >手动配置代理</label
+          >
+        </div>
+      </div>
+
+      <!-- 代理配置界面 -->
+      <div id="proxy-configuration" class="proxy-configuration">
+        <div id="proxy-panel" class="proxy-panel flex-column">
+          <div class="divider"><span>HTTP(S) 设置</span></div>
+          <!-- HTTP 设置 -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <span class="http-s-span w1">HTTP 代理:</span>
+            <input
+              type="text"
+              id="http-proxy"
+              class="http-s-input"
+              placeholder="http.example.com"
+            />
+            <span class="http-s-span w05">端口:</span>
+            <input
+              type="number"
+              id="http-port"
+              class="http-s-port"
+              placeholder="8080"
+            />
+          </div>
+
+          <!-- HTTP 和 HTTPS 共用属性 checkbox -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <input type="checkbox" id="use-for-https" class="c-checkbox" />
+            <label for="use-for-https" class="c-checkbox-label"
+              >也将此代理用于 HTTPS</label
+            >
+          </div>
+
+          <!-- HTTPS 设置 -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <span class="http-s-span w1">HTTPS 代理:</span>
+            <input
+              type="text"
+              id="https-proxy"
+              class="http-s-input"
+              placeholder="https.example.com"
+            />
+            <span class="http-s-span w05">端口:</span>
+            <input
+              type="number"
+              id="https-port"
+              class="http-s-port"
+              placeholder="8443"
+            />
+          </div>
+
+          <div class="divider"><span>无代理列表</span></div>
+
+          <!-- 不使用代理 标签 -->
+          <div class="flex-row w3-h2 m-tb-4">
+            <label class="label-block" for="bypass-list">不使用代理列表</label>
+          </div>
+          <!-- 不使用代理 内容 -->
+          <div class="flex-row w3-h5 m-tb-4">
+            <textarea
+              id="bypass-list"
+              class="bypass-list"
+              placeholder=".net.nz, 192.168.1.0/24, localhost, 127.0.0.1/8, ::1;"
+            ></textarea>
+          </div>
+          <!-- 不使用代理 提示 -->
+          <div class="flex-row w3-h5 m-tb-4">
+            <div class="note">
+              注意：<code
+                >.net.nz, 192.168.1.0/24, localhost, 127.0.0.1/8, ::1</code
+              >
+              的连接永不过经过代理。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 确定按钮 -->
+      <div class="flex-row button-group">
+        <button id="apply-button" class="c-button">确定</button>
+        <button id="cancel-button" class="c-button">取消</button>
+      </div>
+    </div>
+
+    <!-- 你原本的脚本仍可工作 -->
+    <script src="./modules/popup.js"></script>
+  </body>
+</html>
