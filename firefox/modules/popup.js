@@ -16,8 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
     httpsPort: "",
     httpsProxy: "",
     proxyEnabled: false,
-    socksHost: "",
-    socksPort: "",
     useForHttps: false,
   };
 
@@ -93,21 +91,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // 将默认的bypassList加入用户输入的bypassList
     const finalBypassList = [...new Set([...defaultBypassList, ...bypassList])];
 
-    const mode = manualProxyToggle.checked ? "manual" : "none";
-    const httpHost = httpProxyInput.value.trim();
+    const proxyEnabled = manualProxyToggle.checked ? true : false;
+    const httpProxy = httpProxyInput.value.trim();
 
     const httpPort = Number(httpPortInput.value || 0);
     const useForHttps = useForHttpsCheckbox.checked;
-    const httpsHost = useForHttps ? httpHost : httpsProxyInput.value.trim();
+    const httpsProxy = useForHttps ? httpProxy : httpsProxyInput.value.trim();
     const httpsPort = useForHttps
       ? httpPort
       : Number(httpsPortInput.value || 0);
     const payload = {
-      mode,
-      httpHost: httpHost,
+      proxyEnabled,
+      httpProxy: httpProxy,
       httpPort: httpPort,
       useForHttps: useForHttps,
-      httpsHost: httpsHost,
+      httpsProxy: httpsProxy,
       httpsPort: httpsPort,
       bypassList: finalBypassList,
     };
@@ -154,8 +152,6 @@ document.addEventListener("DOMContentLoaded", function () {
       "httpPort",
       "httpsProxy",
       "httpsPort",
-      "socksHost",
-      "socksPort",
       "bypassList",
       "useForHttps",
     ],

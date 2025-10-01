@@ -16,8 +16,6 @@ document.addEventListener("DOMContentLoaded", function () {
     httpsPort: "",
     httpsProxy: "",
     proxyEnabled: false,
-    socksHost: "",
-    socksPort: "",
     useForHttps: false,
   };
 
@@ -180,8 +178,6 @@ document.addEventListener("DOMContentLoaded", function () {
       "httpPort",
       "httpsProxy",
       "httpsPort",
-      "socksHost",
-      "socksPort",
       "bypassList",
       "useForHttps",
     ],

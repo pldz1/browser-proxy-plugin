@@ -14,10 +14,10 @@ const DEFAULT_BYPASS = [
 
 /** 内存态配置（由 popup 同步过来） */
 let state = {
-  mode: "none", // "none" | "manual"
-  httpHost: "",
+  proxyEnabled: false,
+  httpProxy: "",
   httpPort: 0,
-  httpsHost: "",
+  httpsProxy: "",
   httpsPort: 0,
   useForHttps: true,
   bypassList: [], // 规范化后的字符串数组（全小写、无前导点）
@@ -76,13 +76,13 @@ function normalizeBypassList(input) {
 /** 把 storage 中的配置灌入到内存态（带健壮性处理） */
 function hydrateFromStorage(cfg) {
   try {
-    state.mode = cfg.mode === "manual" ? "manual" : "none";
+    state.proxyEnabled = cfg.proxyEnabled || false;
 
-    state.httpHost = normStr(cfg.httpHost);
+    state.httpProxy = normStr(cfg.httpProxy);
     state.httpPort = Number(cfg.httpPort || 0) | 0;
 
     state.useForHttps = !!cfg.useForHttps;
-    state.httpsHost = normStr(cfg.httpsHost);
+    state.httpsProxy = normStr(cfg.httpsProxy);
     state.httpsPort = Number(cfg.httpsPort || 0) | 0;
 
     state.bypassList = normalizeBypassList(cfg.bypassList);
@@ -169,7 +169,7 @@ function isBypassed(url) {
 browser.proxy.onRequest.addListener(
   (details) => {
     try {
-      if (state.mode === "none" || isBypassed(details.url)) {
+      if (state.proxyEnabled === false || isBypassed(details.url)) {
         return [{ type: "direct" }];
       }
 
@@ -179,8 +179,8 @@ browser.proxy.onRequest.addListener(
       // Firefox：HTTP/HTTPS 都用 type: "http"（HTTPS 走 CONNECT）
       const target =
         isHttps && !state.useForHttps
-          ? { host: state.httpsHost, port: state.httpsPort, type: "http" }
-          : { host: state.httpHost, port: state.httpPort, type: "http" };
+          ? { host: state.httpsProxy, port: state.httpsPort, type: "http" }
+          : { host: state.httpProxy, port: state.httpPort, type: "http" };
 
       if (target.host && target.port) {
         // 失败回退直连（如不需要可移除第二项）
